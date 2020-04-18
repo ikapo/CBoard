@@ -1,0 +1,2 @@
+nginx/*.sh linguist-vendored
+nginx/*.conf linguist-vendored

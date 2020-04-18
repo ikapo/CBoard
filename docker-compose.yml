@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+
+  server:
+    build: git://github.com/ikapo/CBoard-Server.git
+    restart: always
+    depends_on:
+      - db
+      - api
+    command: sh -c "go run server.go"
+
+  nginx:
+    build: ./nginx
+    ports:
+      - 80:80
+    restart: always
+    depends_on:
+      - api
+      - db
+      - server
+    command: /bin/bash -c "/usr/bin/wait.sh server:80 -t 0 -- nginx -g 'daemon off;'"
+
+
+  api:
+    build: git://github.com/ikapo/CBoard-API.git
+    depends_on:
+      - db
+    volumes:
+      - ./img:/usr/src/app/img
+    command: sh -c "uvicorn main:app --reload --host 0.0.0.0"
+
+  db:
+    image: mariadb:10.5.1-bionic
+    restart: always
+    volumes:
+      - ./db/data:/var/lib/mysql
+    environment:
+      MYSQL_USER: user
+      MYSQL_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: db
